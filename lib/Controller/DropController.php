@@ -3,6 +3,7 @@
  * @copyright Copyright (c) 2017, Roeland Jago Douma <roeland@famdouma.nl>
  *
  * @author Roeland Jago Douma <roeland@famdouma.nl>
+ * @author Mehdi Tarhoult <mehdi.trh@outlook.fr>
  *
  * @license GNU AGPL version 3 or any later version
  *
@@ -109,7 +110,18 @@ class DropController extends Controller {
 		$share->setShareType(Share::SHARE_TYPE_LINK);
 		$share->setPermissions(Constants::PERMISSION_READ);
 		$share->setSharedBy($this->userId);
-
+		
+	//CODE FROM FILES_SHARING
+		// Get tomorrow's date
+		$expireDate = date('Y-m-d', strtotime('+1 day'));
+		try {
+			$expireDate = $this->parseDate($expireDate);
+			$share->setExpirationDate($expireDate);
+		} catch (\Exception $e) {
+			throw new OCSNotFoundException($this->l->t('Invalid date, date format must be YYYY-MM-DD'));
+		}
+	//END OF CODE FROM FILES_SHARING
+		
 		$share = $this->shareManager->createShare($share);
 
 		return new JSONResponse([
@@ -141,6 +153,18 @@ class DropController extends Controller {
 		$share->setShareType(Share::SHARE_TYPE_LINK);
 		$share->setPermissions(Constants::PERMISSION_READ);
 		$share->setSharedBy($this->userId);
+		
+	//CODE FROM FILES_SHARING
+		
+		// Get tomorrow's date
+		$expireDate = date('Y-m-d', strtotime('+1 day'));
+		try {
+			$expireDate = $this->parseDate($expireDate);
+			$share->setExpirationDate($expireDate);
+		} catch (\Exception $e) {
+			throw new OCSNotFoundException($this->l->t('Invalid date, date format must be YYYY-MM-DD'));
+		}
+	// END CODE FROM FILES_SHARING
 
 		$share = $this->shareManager->createShare($share);
 
