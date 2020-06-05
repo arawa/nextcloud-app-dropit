@@ -24,6 +24,8 @@
 
 namespace OCA\DropIt\Controller;
 
+use DateTime;
+use DateInterval;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
@@ -33,6 +35,7 @@ use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\IRequest;
 use OCP\IURLGenerator;
+use OCP\AppFramework\OCS\OCSNotFoundException;
 use OCP\Share;
 use OCP\Share\IManager as ShareManager;
 
@@ -111,61 +114,16 @@ class DropController extends Controller {
 		$share->setPermissions(Constants::PERMISSION_READ);
 		$share->setSharedBy($this->userId);
 		
-	//CODE FROM FILES_SHARING
-		// Get tomorrow's date
-		$expireDate = date('Y-m-d', strtotime('+1 day'));
+		// Get todays's date and add one day to it
+		$expireDate = new DateTime();
+		$expireDate->add(new DateInterval("P1D"));
+		//$expireDate->setTimestamp($this->timeFactory->getTime());
 		try {
-			$expireDate = $this->parseDate($expireDate);
 			$share->setExpirationDate($expireDate);
 		} catch (\Exception $e) {
 			throw new OCSNotFoundException($this->l->t('Invalid date, date format must be YYYY-MM-DD'));
 		}
-	//END OF CODE FROM FILES_SHARING
 		
-		$share = $this->shareManager->createShare($share);
-
-		return new JSONResponse([
-			'link' => $this->urlGenerator->linkToRouteAbsolute('files_sharing.sharecontroller.showShare', ['token' => $share->getToken()]),
-		]);
-	}
-
-	/**
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 *
-	 * @param string text
-	 * @return JSONResponse
-	 */
-	public function text(string $text) {
-		$ts = $this->timeFactory->getTime();
-		$dt = new \DateTime();
-		$dt->setTimestamp($ts);
-
-		$folder = $this->getFolder();
-
-		$fileName = $dt->format('YmdHis') . '.txt';
-
-		$file = $folder->newFile($fileName);
-		$file->putContent($text);
-
-		$share = $this->shareManager->newShare();
-		$share->setNode($file);
-		$share->setShareType(Share::SHARE_TYPE_LINK);
-		$share->setPermissions(Constants::PERMISSION_READ);
-		$share->setSharedBy($this->userId);
-		
-	//CODE FROM FILES_SHARING
-		
-		// Get tomorrow's date
-		$expireDate = date('Y-m-d', strtotime('+1 day'));
-		try {
-			$expireDate = $this->parseDate($expireDate);
-			$share->setExpirationDate($expireDate);
-		} catch (\Exception $e) {
-			throw new OCSNotFoundException($this->l->t('Invalid date, date format must be YYYY-MM-DD'));
-		}
-	// END CODE FROM FILES_SHARING
-
 		$share = $this->shareManager->createShare($share);
 
 		return new JSONResponse([

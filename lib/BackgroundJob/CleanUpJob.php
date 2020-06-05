@@ -30,6 +30,7 @@ use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\IUser;
 use OCP\IUserManager;
+use OCP\Share\IManager as ShareManager;
 
 class CleanUpJob extends TimedJob {
 	/** @var IUserManager */
@@ -41,51 +42,56 @@ class CleanUpJob extends TimedJob {
 	/** @var ITimeFactory */
 	private $timeFactory;
 
+	/** @var ShareManager */
+	private $shareManager;
+
 	public function __construct(IUserManager $userManager,
 								IRootFolder $rootFolder,
-								ITimeFactory $timeFactory) {
+								ITimeFactory $timeFactory,
+								ShareManager $shareManager) {
 		// Run once a day
 		$this->setInterval(24 * 60 * 60);
 
 		$this->userManager = $userManager;
 		$this->rootFolder = $rootFolder;
 		$this->timeFactory = $timeFactory;
+		$this->shareManager = $shareManager;
 	}
 
 	protected function run($argument) {
-		$now = new \DateTime();
-		$now->setTimestamp($this->timeFactory->getTime());
+		$today = new \DateTime();
+		$today->setTimestamp($this->timeFactory->getTime());
 
-
-		$this->userManager->callForSeenUsers(function(IUser $user) use ($now) {
+		$this->userManager->callForSeenUsers(function(IUser $user) use ($today) {
 			$userFolder = $this->rootFolder->getUserFolder($user->getUID());
 
 			// No DropIt folder, just ignore
-			if (!$userFolder->nodeExists('DropIt')) {
+			if (!$userFolder->nodeExists('DropIt'))
 				return;
-			}
 
 			$dropIt = $userFolder->get('DropIt');
 
 			// If it isn't a folder just return
-			if (!($dropIt instanceof Folder)) {
+			if (!($dropIt instanceof Folder))
 				return;
-			}
 
 			$listing = $dropIt->getDirectoryListing();
+			
+			// Get all elements shared
+			$shares = $this->shareManager->getSharesInFolder($user, $dropIt);
 
 			foreach ($listing as $node) {
 				// Only process files
 				if (!($node instanceof File)) {
 					continue;
 				}
-
+			
 				// Match on YYYYmmddHHiiss
 				if (preg_match('/^[0-9]{14}/', $node->getName(), $matches)) {
 					$filetime = \DateTime::createFromFormat('YmdHis', $matches[0]);
-
-					$diff = $now->diff($filetime);
-
+			
+					$diff = $today->diff($filetime);
+			
 					// Delete all files older than 14 days
 					if ($diff->days > 14) {
 						$node->delete();
@@ -94,5 +100,4 @@ class CleanUpJob extends TimedJob {
 			}
 		});
 	}
-
 }

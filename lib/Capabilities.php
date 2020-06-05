@@ -44,10 +44,6 @@ class Capabilities implements ICapability {
 						'url' => $this->urlGenerator->linkToRouteAbsolute('dropit.drop.upload'),
 						'param' => 'data',
 					],
-					'text' => [
-						'url' => $this->urlGenerator->linkToRouteAbsolute('dropit.drop.text'),
-						'param' => 'text',
-					],
 				]
 			],
 		];

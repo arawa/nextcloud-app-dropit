@@ -24,6 +24,7 @@ namespace OCA\DropIt\AppInfo;
 
 use OCA\DropIt\Capabilities;
 use OCP\AppFramework\App;
+use \OCA\DropIt\Hooks\DeleteHook;
 
 class Application extends App {
 
@@ -37,5 +38,10 @@ class Application extends App {
 
 		$container = $this->getContainer();
 		$container->registerCapability(Capabilities::class);
+		$container->registerService('UserHooks', function($c) {
+            return new DeleteHook(
+                $c->query('ServerContainer')->getUserManager()
+            );
+        });
 	}
 }

@@ -21,6 +21,8 @@
  *
  */
 
+use OCA\DropIt\Hooks\DeleteHook;
+
 $app = \OC::$server->query(\OCA\DropIt\AppInfo\Application::class);
 
 \OCA\Files\App::getNavigationManager()->add(function () {
@@ -35,3 +37,13 @@ $app = \OC::$server->query(\OCA\DropIt\AppInfo\Application::class);
 		'classes' => 'pinned',
 	];
 });
+
+// Rajouter ici l'appel hook::connect
+// On se branche sur le Hook pour supprimer le fichier après son départage
+\OC_Hook::connect(\OCP\Share::class, "post_unshare", DeleteHook::class, "delete");
+
+//filesource : id dans la table file_cache (identifie le fichier source)
+//filetarget : nom du fichier pour l'user avec lequel on a partagé
+
+//chercher une fonction qui me donne le chemin d'un fichier passé en paramètre
+//ensuite, utiliser unlink() de Storage.php dans mon hook pour supprimer un fichier

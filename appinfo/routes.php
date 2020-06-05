@@ -3,6 +3,7 @@
  * @copyright Copyright (c) 2017, Roeland Jago Douma <roeland@famdouma.nl>
  *
  * @author Roeland Jago Douma <roeland@famdouma.nl>
+ * @author Mehdi Tarhoult <mehdi.trh@outlook.fr>
  *
  * @license GNU AGPL version 3 or any later version
  *
@@ -26,11 +27,6 @@ return [
 		[
 			'name' => 'drop#upload',
 			'url' => '/drop',
-			'verb' => 'POST',
-		],
-		[
-			'name' => 'drop#text',
-			'url' => '/text',
 			'verb' => 'POST',
 		],
 	],
